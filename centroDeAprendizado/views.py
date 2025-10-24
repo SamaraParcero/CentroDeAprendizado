@@ -17,29 +17,29 @@ from .utils.autenticacaosevice import generateForgotPasswordToken, validateForgo
 from django_filters.rest_framework import DjangoFilterBackend
 from .filters import LearningRecordsFilters
 from rest_framework.generics import GenericAPIView
-from rest_framework.pagination import LimitOffsetPagination
+
 
 class LoginUserView(APIView):
     permission_classes = []
     def post(self, request):
-        username = request.data.get('username')
+        email = request.data.get('email')
         password = request.data.get('password')
 
-        if not username or not password:
-            return Response({'detail':'username ou senha não informados'},status = status.HTTP)
+        if not email or not password:
+            return Response({'detail':'Email ou senha não informados'},status = status.HTTP_400_BAD_REQUEST)
         
         try:
-            user = User.objects.get(username=username)
+            user = User.objects.get(email=email)
         except User.DoesNotExist:
-            return Response({'detail':'Username ou senha incorreto'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'detail':'Email ou senha incorreto'}, status=status.HTTP_401_UNAUTHORIZED)
         
         if not user.is_active:
             return Response({'detail':'Usuário inativo'}, status=status.HTTP_401_UNAUTHORIZED)
         
-        user_authenticated = authenticate(request, username=username, password=password)
+        user_authenticated = authenticate(request, email=email, password=password)
 
         if not user_authenticated:
-            return Response({'detail':'Username ou senha incorretos'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'detail':'Email ou senha incorretos'}, status=status.HTTP_401_UNAUTHORIZED)
         
         token = RefreshToken.for_user(user)
         serializer =  UserLoginSerializer(user)
